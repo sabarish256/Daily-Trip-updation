@@ -48,10 +48,9 @@ def trip_form():
     if "username" not in session:
         return redirect(url_for("login"))
 
-    # Initialize or load trips for the date
-    if "trips" not in session:
-        session["trips"] = []
-        session["trip_date"] = ""
+    # Initialize session data
+    if "daily_trips" not in session:
+        session["daily_trips"]
     
     if request.method == "POST":
         action = request.form.get("action")
