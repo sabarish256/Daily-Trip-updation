@@ -5,7 +5,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "taxi_app_secret_2026"
 
-GOOGLE_WEBHOOK = "https://script.google.com/macros/s/YOUR_WEBHOOK_URL/exec"  # Your webhook
+GOOGLE_WEBHOOK = "https://script.google.com/macros/s/YOUR_WEBHOOK_URL/exec"  # Replace with your actual webhook
 
 VALID_USERS = {"siva": "5218"}
 CHENNAI_LOCATIONS = [
@@ -48,9 +48,10 @@ def trip_form():
     if "username" not in session:
         return redirect(url_for("login"))
 
-    # Initialize session data
-    if "daily_trips" not in session:
-        session["daily_trips"]
+    # Initialize or load trips for the date
+    if "trips" not in session:
+        session["trips"] = []
+        session["trip_date"] = ""
     
     if request.method == "POST":
         action = request.form.get("action")
@@ -80,13 +81,14 @@ def trip_form():
         elif action == "submit_all":
             # Submit all trips for the date to Google Sheets
             trip_date = session["trip_date"]
+            total_trips = len(session["trips"])
             success_count = 0
             
             for trip in session["trips"]:
                 data = {
                     "username": session["username"],
                     "date": trip_date,
-                    "time": trip.trip["time"],
+                    "time": trip["time"],  # Fixed: was trip.trip["time"]
                     "location": trip["location"],
                     "tripType": trip["trip_type"],
                     "passengers": trip["passengers"],
@@ -97,16 +99,16 @@ def trip_form():
                     response = requests.post(GOOGLE_WEBHOOK, json=data, timeout=10)
                     if response.status_code == 200:
                         success_count += 1
-                except:
-                    pass
+                except Exception:
+                    pass  # Silent fail, log in production
             
-            # Clear session
+            # Clear session after submission
             session["trips"] = []
             session["trip_date"] = ""
             session.modified = True
             
             return render_template("success.html", 
-                                 submitted_count=len(session["trips"]),
+                                 submitted_count=total_trips,  # Fixed: capture before clear
                                  success_count=success_count,
                                  trip_date=trip_date)
     
@@ -122,9 +124,10 @@ def trip_form():
 
 @app.route("/clear_trips")
 def clear_trips():
-    session["trips"] = []
-    session["trip_date"] = ""
-    session.modified = True
+    if "username" in session:
+        session["trips"] = []
+        session["trip_date"] = ""
+        session.modified = True
     return redirect(url_for("trip_form"))
 
 @app.route("/success")
