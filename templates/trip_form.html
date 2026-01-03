@@ -25,13 +25,14 @@
         <div class="row text-small">
             {% for trip in trips %}
             <div class="col-md-6 mb-2">
-                <small class="text-muted">{{ trip.time }} - {{ trip.location }} ({{ trip.passengers }})</small>
+                <small class="text-muted">{{ trip['time'] }} - {{ trip['location'] }} ({{ trip['passengers'] }})</small>
             </div>
             {% endfor %}
         </div>
     </div>
     {% endif %}
 
+    <!-- Add Single Trip Form -->
     <form method="post">
         <!-- DATE, TIME, LOCATION ROW -->
         <div class="row g-3 mb-4">
@@ -89,18 +90,21 @@
             </div>
         </div>
 
-        <!-- BUTTONS ROW -->
-        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-            <input type="hidden" name="action" value="add_trip">
-            <button type="submit" class="btn btn-primary btn-lg px-5 me-md-2 mb-2 mb-md-0">
+        <!-- Add Trip Button -->
+        <input type="hidden" name="action" value="add_trip">
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn btn-primary btn-lg px-5">
                 ➕ Add This Trip
             </button>
+            
+            <!-- Submit All Form (separate form) -->
             {% if trips %}
-            <input type="hidden" name="action" value="submit_all">
-            <button type="submit" formaction="{{ url_for('trip_form') }}" 
-                    class="btn btn-success btn-lg px-5">
-                ✅ Submit All {{ trips|length }} Trips
-            </button>
+            <form method="post" action="{{ url_for('trip_form') }}" class="d-inline">
+                <input type="hidden" name="action" value="submit_all">
+                <button type="submit" class="btn btn-success btn-lg px-5">
+                    ✅ Submit All {{ trips|length }} Trips
+                </button>
+            </form>
             {% endif %}
         </div>
     </form>
